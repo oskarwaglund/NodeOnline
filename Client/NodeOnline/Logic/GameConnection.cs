@@ -32,8 +32,9 @@ namespace NodeOnline.Logic
 
         public void ConnectToMcServer(string ip, int port)
         {
-            mcServer = new UdpClient();
-            mcServer.Connect(ip, port);
+            mcServer = new UdpClient(port, AddressFamily.InterNetwork);
+            IPAddress ipAddr = IPAddress.Parse(ip);
+            mcServer.JoinMulticastGroup(ipAddr);
         }
 
         public byte[] ListenToMcServer()

@@ -20,19 +20,6 @@ const s2nano = 1e9;
 const nano2s = 1 / s2nano; // avoid a divide later, although maybe not nessecary
 const ms2nano = 1e6;
 
-/**
- * Create a game loop that will attempt to update at some target `tickLengthMs`.
- *
- * `tickLengthMs` defaults to 30fps (~33.33ms).
- *
- * Internally, the `gameLoop` function created has two mechanisms to update itself.
- * One for coarse-grained updates (with `setTimeout`) and one for fine-grained
- * updates (with `setImmediate`).
- *
- * On each tick, we set a target time for the next tick. We attempt to use the coarse-
- * grained "long wait" to get most of the way to our target tick time, then use the
- * fine-grained wait to wait the remaining time.
- */
 module.exports.setGameLoop = function(update, tickLengthMs = 1000 / 30) {
 	let loopId = getLoopId();
 	activeLoops.push(loopId);

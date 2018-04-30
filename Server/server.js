@@ -47,6 +47,7 @@ socket.on('listening', () => {
 const id = gameloop.setGameLoop(function(delta) {
 	// `delta` is the delta time from the last frame
   frameCount++;
+  game.updateGame();
   mcSocket.send(game.getState(), 6000, mcIP);
 
 }, 25);

@@ -2,19 +2,10 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net;
-using System.Net.Sockets;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 using System.Windows.Threading;
 
 namespace NodeOnline
@@ -35,7 +26,7 @@ namespace NodeOnline
         private const int SERVER_PORT = 12345;
 
         private const string SERVER_MC_IP = "224.1.2.3";
-        private const int SERVER_MC_PORT = 6000;
+        private const int SERVER_MC_PORT = 6001;
 
         private GameConnection gameConnection = new GameConnection();
 
@@ -56,13 +47,6 @@ namespace NodeOnline
             KeyUp += new KeyEventHandler(keyManager.KeyUp);
         }
 
-        private void AddPlayer()
-        {
-            Player player = new Player(123, "Harry", 100, 100);
-            players.Add(player);
-            paintCanvas.Children.Add(player.UI);
-        }
-
         private void gameLoop(object sender, EventArgs e)
         {
             SendInput();
@@ -81,17 +65,24 @@ namespace NodeOnline
             byte[] state = gameConnection.ListenToMcServer();
             for(int i = 0; i < state.Length; i += 3)
             {
+                byte id = state[i];
+                byte x = state[i + 1];
+                byte y = state[i + 2];
 
+                Player player = players.FirstOrDefault(p => p.ID == id);
+                if(player == null)
+                {
+                    players.Add(new Player(id, "Player"+id, x, y));
+                } else
+                {
+                    player.X = x;
+                    player.Y = y;
+                }
             }
         }
 
         private void UpdateGame()
         {
-            foreach (Player player in players)
-            {
-                player.X += 0;
-            }
-
             foreach (Player player in players.Where(p => p.IsUpdated))
             {
                 Canvas.SetLeft(player.UI, player.X);

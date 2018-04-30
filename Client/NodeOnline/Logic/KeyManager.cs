@@ -1,8 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Input;
 
 namespace NodeOnline.Logic
@@ -44,9 +41,12 @@ namespace NodeOnline.Logic
             byte mask = 0;
             byte cursor = 1;
 
-            foreach(var key in keyPressed)
+            foreach(var key in keys)
             {
-                mask += cursor;
+                if (keyPressed[key])
+                {
+                    mask += cursor;
+                }
                 cursor *= 2;
             }
 
