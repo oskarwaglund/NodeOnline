@@ -19,5 +19,14 @@ namespace NodeOnline.Logic
 
             return packet.ToArray();
         }
+
+        public static byte[] Input(int id, byte mask)
+        {
+            byte[] packet = new byte[3];
+            packet[0] = INPUT;
+            packet[1] = (byte)id;
+            packet[2] = mask;
+            return packet;
+        }
     }
 }

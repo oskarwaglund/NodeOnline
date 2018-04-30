@@ -27,7 +27,7 @@ namespace NodeOnline.Logic
             {
                 if(value != _x)
                 {
-                    IsUpdated = true;
+                    IsUpdated = false;
                     _x = value;
                 }
             }
@@ -44,7 +44,7 @@ namespace NodeOnline.Logic
             {
                 if(value != _y)
                 {
-                    IsUpdated = true;
+                    IsUpdated = false;
                     _y = value;
                 }
             }
@@ -61,7 +61,7 @@ namespace NodeOnline.Logic
             {
                 if (value != _health)
                 {
-                    IsUpdated = true;
+                    IsUpdated = false;
                     _health = value;
                 }
             }
@@ -83,7 +83,7 @@ namespace NodeOnline.Logic
             X = x;
             Y = y;
             Name = name;
-            IsUpdated = true;
+            IsUpdated = false;
             UI = new Ellipse
             {
                 Width = 20,

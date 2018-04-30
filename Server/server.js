@@ -33,7 +33,8 @@ socket.on('message', (msg, rinfo) => {
       socket.send(reply, rinfo.port, rinfo.address);
       break;
     case INPUT:
-      console.log("Player input");
+      console.log("Player input from player " + msg[1] + ": " + msg[2]);
+      game.addInput(msg);
       break;
   }
     
@@ -48,7 +49,10 @@ const id = gameloop.setGameLoop(function(delta) {
 	// `delta` is the delta time from the last frame
   frameCount++;
   game.updateGame();
-  mcSocket.send(game.getState(), 6000, mcIP);
+
+  var state = game.getState();
+  if(state.length > 0)
+    mcSocket.send(state, 6000, mcIP);
 
 }, 25);
 

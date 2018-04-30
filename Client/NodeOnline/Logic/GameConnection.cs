@@ -1,20 +1,32 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace NodeOnline.Logic
 {
     class GameConnection
     {
-        UdpClient mcServer;
+        Socket mcSocket;
+        byte[] recvBuffer;
+        int bytesInBuffer;
+
+        UdpClient client;
+
+        bool running;
+
+        Stopwatch watch = new Stopwatch();
+
+        public event EventHandler DataReceived;
 
         public int Connect(string name, string ip, int port)
         {
-            UdpClient client = new UdpClient();
+            client = new UdpClient();
             client.Connect(ip, port);
 
             byte[] packet = PacketBuilder.Connect(name);
@@ -32,15 +44,53 @@ namespace NodeOnline.Logic
 
         public void ConnectToMcServer(string ip, int port)
         {
-            mcServer = new UdpClient(port, AddressFamily.InterNetwork);
-            IPAddress ipAddr = IPAddress.Parse(ip);
-            mcServer.JoinMulticastGroup(ipAddr);
+            mcSocket = new Socket(AddressFamily.InterNetwork,
+                SocketType.Dgram,
+                ProtocolType.Udp);
+            IPAddress localIP = IPAddress.Parse("192.168.0.7");
+            EndPoint localEP = new IPEndPoint(localIP, port);
+            mcSocket.Bind(localEP);
+
+            MulticastOption mcOption = new MulticastOption(IPAddress.Parse(ip), localIP);
+            mcSocket.SetSocketOption(SocketOptionLevel.IP,
+                SocketOptionName.AddMembership,
+                mcOption);
+
+            recvBuffer = new byte[1000];
+
+            Thread thread = new Thread(new ThreadStart(Listen));
+            running = true;
+            thread.Start();
         }
 
-        public byte[] ListenToMcServer()
+        public void Listen()
         {
-            IPEndPoint ep = new IPEndPoint(IPAddress.Any, 0);
-            return mcServer.Receive(ref ep);
+            EndPoint remoteEP = new IPEndPoint(IPAddress.Any, 0);
+            while (running)
+            {
+                bytesInBuffer = mcSocket.ReceiveFrom(recvBuffer, ref remoteEP);
+                DataReceived?.Invoke(this, EventArgs.Empty);
+            }
+        }
+
+        public void Stop()
+        {
+            running = false;
+        }
+
+        public void SendInput(int id, byte mask)
+        {
+            if (mask != 0)
+            {
+                byte[] packet = PacketBuilder.Input(id, mask);
+                client.Send(packet, packet.Length);
+            }
+        }
+
+        public byte[] GetState(out int numberOfBytes)
+        {
+            numberOfBytes = bytesInBuffer;
+            return recvBuffer;
         }
     }
 }

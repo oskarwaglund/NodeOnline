@@ -1,6 +1,7 @@
 ﻿using NodeOnline.Logic;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
@@ -16,80 +17,93 @@ namespace NodeOnline
     public partial class MainWindow : Window
     {
         Brush color = Brushes.Blue;
-        System.TimeSpan interval = new TimeSpan(250000);
+        System.TimeSpan interval = new TimeSpan(100000);
 
         List<Player> players = new List<Player>();
 
         KeyManager keyManager = new KeyManager();
 
-        private const string SERVER_IP = "127.0.0.1";
+        private const string SERVER_IP = "localhost";
         private const int SERVER_PORT = 12345;
 
         private const string SERVER_MC_IP = "224.1.2.3";
-        private const int SERVER_MC_PORT = 6001;
+        private const int SERVER_MC_PORT = 6000;
 
         private GameConnection gameConnection = new GameConnection();
+
+        private int ID;
+
+        PreciseTimer preciseTimer;
 
         public MainWindow()
         {
             InitializeComponent();
 
-            int id = gameConnection.Connect("Olle", SERVER_IP, SERVER_PORT);
+            string server = SERVER_IP; // Microsoft.VisualBasic.Interaction.InputBox("Select IP of the server");
+            string name = "Oskar"; // Microsoft.VisualBasic.Interaction.InputBox("Select name");
+            ID = gameConnection.Connect(name, server, SERVER_PORT);
             gameConnection.ConnectToMcServer(SERVER_MC_IP, SERVER_MC_PORT);
-
-            DispatcherTimer timer = new DispatcherTimer();
-            timer.Tick += new EventHandler(gameLoop);
-
-            timer.Interval = interval;
-            timer.Start();
+            gameConnection.DataReceived += UpdateGame;
 
             KeyDown += new KeyEventHandler(keyManager.KeyDown);
             KeyUp += new KeyEventHandler(keyManager.KeyUp);
+
+            preciseTimer = new PreciseTimer(25);
+            preciseTimer.Tick += GameLoop;
+
+            Closing += OnClose;
         }
 
-        private void gameLoop(object sender, EventArgs e)
+        void OnClose(object sender, EventArgs e)
+        {
+            preciseTimer.Stop();
+            gameConnection.Stop();
+        }
+
+        private void GameLoop(object sender, EventArgs e)
         {
             SendInput();
-            ReceiveState();
-            
-            UpdateGame();
         }
 
         private void SendInput()
         {
-
+            byte mask = keyManager.GetMask();
+            gameConnection.SendInput(ID, mask);
         }
 
-        private void ReceiveState()
+        private void UpdateGame(object sender, EventArgs e)
         {
-            byte[] state = gameConnection.ListenToMcServer();
-            for(int i = 0; i < state.Length; i += 3)
+            Dispatcher.BeginInvoke(new Action(() =>
             {
-                byte id = state[i];
-                byte x = state[i + 1];
-                byte y = state[i + 2];
+                byte[] state = gameConnection.GetState(out int numberOfBytes);
+                for (int i = 0; i < numberOfBytes; i += 3)
+                {
+                    byte id = state[i];
+                    byte x = state[i + 1];
+                    byte y = state[i + 2];
 
-                Player player = players.FirstOrDefault(p => p.ID == id);
-                if(player == null)
-                {
-                    players.Add(new Player(id, "Player"+id, x, y));
-                } else
-                {
-                    player.X = x;
-                    player.Y = y;
+                    Player player = players.FirstOrDefault(p => p.ID == id);
+                    if (player == null)
+                    {
+                        Player newPlayer = new Player(id, "Player" + id, x, y);
+                        players.Add(newPlayer);
+                        paintCanvas.Children.Add(newPlayer.UI);
+                    }
+                    else
+                    {
+                        player.X = x;
+                        player.Y = y;
+                    }
                 }
-            }
-        }
 
-        private void UpdateGame()
-        {
-            foreach (Player player in players.Where(p => p.IsUpdated))
-            {
-                Canvas.SetLeft(player.UI, player.X);
-                Canvas.SetTop(player.UI, player.Y);
+                foreach (Player player in players.Where(p => !p.IsUpdated))
+                {
+                    Canvas.SetLeft(player.UI, player.X);
+                    Canvas.SetTop(player.UI, player.Y);
 
-                player.IsUpdated = false;
-            }
+                    player.IsUpdated = true;
+                }
+            }));
         }
     }
 }
