@@ -1,7 +1,9 @@
 const dgram = require('dgram');
-const socket = dgram.createSocket('udp4');
 const gameloop = require('./lib/gameloop');
 const game = require('./lib/game');
+
+const localSocket = dgram.createSocket('udp4');
+const remoteSocket = dgram.createSocket('udp4');
 
 var mcIP = '224.1.2.3';
 var mcPort = 6000;
@@ -18,13 +20,12 @@ const CONNECT = 0;
 const LEAVE = 1;
 const INPUT = 2;
 
-socket.on('error', (err) => {
+localSocket.on('error', (err) => {
   console.log(`server error:\n${err.stack}`);
   server.close();
 });
 
-socket.on('message', (msg, rinfo) => {
-  console.log(`server got: ${msg} from ${rinfo.address}:${rinfo.port}` + msg[0]);
+var onSocketMessage = function(msg, rinfo, socket){
   switch(msg[0]){
     case CONNECT: 
       let id = game.addPlayer(msg.slice(1));
@@ -33,19 +34,45 @@ socket.on('message', (msg, rinfo) => {
       socket.send(reply, rinfo.port, rinfo.address);
       break;
     case INPUT:
-      console.log("Player input from player " + msg[1] + ": " + msg[2]);
       game.addInput(msg);
       break;
   }
-    
-});
+}
 
-socket.on('listening', () => {
+var onListening = function(socket){
   const address = socket.address();
   console.log(`server listening ${address.address}:${address.port}`);
+}
+
+localSocket.on('message', (msg, rinfo) => {
+  onSocketMessage(msg, rinfo, localSocket);
 });
 
-const id = gameloop.setGameLoop(function(delta) {
+remoteSocket.on('message', (msg, rinfo) => {
+  onSocketMessage(msg, rinfo, remoteSocket);
+});
+
+localSocket.on('listening', () => {
+  onListening(localSocket);
+});
+
+remoteSocket.on('listening', () => {
+  onListening(remoteSocket);
+});
+
+localSocket.bind({
+    address: 'localhost',
+    port: 12345,
+    exclusive: true
+});
+
+remoteSocket.bind({
+  address: '192.168.0.7',
+  port: 12345,
+  exclusive: true
+});
+
+gameloop.setGameLoop(function(delta) {
 	// `delta` is the delta time from the last frame
   frameCount++;
   game.updateGame();
@@ -55,10 +82,4 @@ const id = gameloop.setGameLoop(function(delta) {
     mcSocket.send(state, 6000, mcIP);
 
 }, 25);
-
-socket.bind({
-    address: 'localhost',
-    port: 12345,
-    exclusive: true
-  });
 // server listening 127.0.0.1:12345

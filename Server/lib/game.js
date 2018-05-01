@@ -27,15 +27,13 @@ module.exports.updateGame = function(){
         let id = inputs[i][1];
         let mask = inputs[i][2];
         
-        console.log("ID: " + id + ", mask: " + mask);
-
-        if((mask & 1) > 0)
+        if((mask & 1) > 0 && players[id].y > 0)
             players[id].y--;
-        if((mask & 2) > 0)
+        if((mask & 2) > 0 && players[id].x > 0)
             players[id].x--;
-        if((mask & 4) > 0)
+        if((mask & 4) > 0 && players[id].y < 255)
             players[id].y++;
-        if((mask & 8) > 0)
+        if((mask & 8) > 0 && players[id].x < 255)
             players[id].x++;
     }
     inputs = [];

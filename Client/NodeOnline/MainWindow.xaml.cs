@@ -23,7 +23,7 @@ namespace NodeOnline
 
         KeyManager keyManager = new KeyManager();
 
-        private const string SERVER_IP = "localhost";
+        private const string SERVER_IP = "192.168.0.7";
         private const int SERVER_PORT = 12345;
 
         private const string SERVER_MC_IP = "224.1.2.3";
@@ -39,10 +39,12 @@ namespace NodeOnline
         {
             InitializeComponent();
 
-            string server = SERVER_IP; // Microsoft.VisualBasic.Interaction.InputBox("Select IP of the server");
-            string name = "Oskar"; // Microsoft.VisualBasic.Interaction.InputBox("Select name");
+            string name = Microsoft.VisualBasic.Interaction.InputBox("Select name");
+            string localIP = Microsoft.VisualBasic.Interaction.InputBox("Enter local network interface (IP Address)");
+            string server = (localIP == SERVER_IP) ? "localhost" : SERVER_IP;
+
             ID = gameConnection.Connect(name, server, SERVER_PORT);
-            gameConnection.ConnectToMcServer(SERVER_MC_IP, SERVER_MC_PORT);
+            gameConnection.ConnectToMcServer(SERVER_MC_IP, SERVER_MC_PORT, localIP);
             gameConnection.DataReceived += UpdateGame;
 
             KeyDown += new KeyEventHandler(keyManager.KeyDown);

@@ -42,16 +42,15 @@ namespace NodeOnline.Logic
             return recv[1];
         }
 
-        public void ConnectToMcServer(string ip, int port)
+        public void ConnectToMcServer(string ip, int port, string localIP)
         {
             mcSocket = new Socket(AddressFamily.InterNetwork,
                 SocketType.Dgram,
                 ProtocolType.Udp);
-            IPAddress localIP = IPAddress.Parse("192.168.0.7");
-            EndPoint localEP = new IPEndPoint(localIP, port);
+            EndPoint localEP = new IPEndPoint(IPAddress.Parse(localIP), port);
             mcSocket.Bind(localEP);
 
-            MulticastOption mcOption = new MulticastOption(IPAddress.Parse(ip), localIP);
+            MulticastOption mcOption = new MulticastOption(IPAddress.Parse(ip), IPAddress.Parse(localIP));
             mcSocket.SetSocketOption(SocketOptionLevel.IP,
                 SocketOptionName.AddMembership,
                 mcOption);
