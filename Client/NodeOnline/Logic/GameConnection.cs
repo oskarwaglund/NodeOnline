@@ -12,9 +12,16 @@ namespace NodeOnline.Logic
 {
     class GameConnection
     {
+        const byte STATE         = 0x10;
+        const byte PLAYER_DATA   = 0x11;
+
         Socket mcSocket;
         byte[] recvBuffer;
-        int bytesInBuffer;
+        byte[] gameStateBuffer;
+        byte[] playerDataBuffer;
+
+        int bytesInGameStateBuffer;
+        int bytesInPlayerDataBuffer;
 
         UdpClient client;
 
@@ -22,7 +29,8 @@ namespace NodeOnline.Logic
 
         Stopwatch watch = new Stopwatch();
 
-        public event EventHandler DataReceived;
+        public event EventHandler StateReceived;
+        public event EventHandler PlayerDataReceived;
 
         public int Connect(string name, string ip, int port)
         {
@@ -56,6 +64,8 @@ namespace NodeOnline.Logic
                 mcOption);
 
             recvBuffer = new byte[1000];
+            gameStateBuffer = new byte[1000];
+            playerDataBuffer = new byte[1000];
 
             Thread thread = new Thread(new ThreadStart(Listen));
             running = true;
@@ -67,8 +77,21 @@ namespace NodeOnline.Logic
             EndPoint remoteEP = new IPEndPoint(IPAddress.Any, 0);
             while (running)
             {
-                bytesInBuffer = mcSocket.ReceiveFrom(recvBuffer, ref remoteEP);
-                DataReceived?.Invoke(this, EventArgs.Empty);
+                int bytes = mcSocket.ReceiveFrom(recvBuffer, ref remoteEP);
+                switch (recvBuffer[0])
+                {
+                    case STATE:
+                        Array.Copy(recvBuffer, 1, gameStateBuffer, 0, bytes-1);
+                        bytesInGameStateBuffer = bytes-1;
+                        StateReceived?.Invoke(this, EventArgs.Empty);
+                        break;
+                    case PLAYER_DATA:
+                        Array.Copy(recvBuffer, 1, playerDataBuffer, 0, bytes - 1);
+                        bytesInPlayerDataBuffer = bytes-1;
+                        PlayerDataReceived?.Invoke(this, EventArgs.Empty);
+                        break;
+                }
+                
             }
         }
 
@@ -86,10 +109,16 @@ namespace NodeOnline.Logic
             }
         }
 
-        public byte[] GetState(out int numberOfBytes)
+        public byte[] GetGameStateBuffer(out int numberOfBytes)
         {
-            numberOfBytes = bytesInBuffer;
-            return recvBuffer;
+            numberOfBytes = bytesInGameStateBuffer;
+            return gameStateBuffer;
+        }
+
+        public byte[] GetPlayerDataBuffer(out int numberOfBytes)
+        {
+            numberOfBytes = bytesInPlayerDataBuffer;
+            return playerDataBuffer;
         }
     }
 }

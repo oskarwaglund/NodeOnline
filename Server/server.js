@@ -28,7 +28,7 @@ localSocket.on('error', (err) => {
 var onSocketMessage = function(msg, rinfo, socket){
   switch(msg[0]){
     case CONNECT: 
-      let id = game.addPlayer(msg.slice(1));
+      let id = game.addPlayer('Bob');
       console.log("Player " + msg.slice(1) + " connected with id " + id + "!");
       let reply = new Uint8Array([CONNECT, id]);
       socket.send(reply, rinfo.port, rinfo.address);
@@ -78,8 +78,13 @@ gameloop.setGameLoop(function(delta) {
   game.updateGame();
 
   var state = game.getState();
-  if(state.length > 0)
-    mcSocket.send(state, 6000, mcIP);
+  if(state.length > 1)
+    mcSocket.send(state, mcPort, mcIP);
+
+  if(frameCount % 100 == 0){
+    var playerData = game.getPlayerData();
+    if(playerData.length > 1)
+      mcSocket.send(playerData, mcPort, mcIP);
+  }
 
 }, 25);
-// server listening 127.0.0.1:12345

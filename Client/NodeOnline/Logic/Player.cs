@@ -13,7 +13,7 @@ namespace NodeOnline.Logic
 
         public string Name
         {
-            get;
+            get; set;
         }
 
         private int _x;
@@ -72,9 +72,24 @@ namespace NodeOnline.Logic
             get; set;
         }
 
-        public UIElement UI
+        Ellipse _ui;
+        byte _r, _g, _b;
+
+        public Ellipse UI
         {
-            get;
+            get
+            {
+                return _ui;
+            }
+        }
+
+        public void SetColor(byte r, byte g, byte b)
+        {
+            if(r != _r || g != _g || b != _b)
+            {
+                _ui.Fill = new SolidColorBrush(Color.FromRgb(r, g, b));
+                IsUpdated = false;
+            }
         }
 
         public Player(int id, string name, int x, int y)
@@ -84,7 +99,7 @@ namespace NodeOnline.Logic
             Y = y;
             Name = name;
             IsUpdated = false;
-            UI = new Ellipse
+            _ui = new Ellipse
             {
                 Width = 20,
                 Height = 20,

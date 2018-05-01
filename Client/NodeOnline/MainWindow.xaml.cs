@@ -39,13 +39,15 @@ namespace NodeOnline
         {
             InitializeComponent();
 
-            string name = Microsoft.VisualBasic.Interaction.InputBox("Select name");
-            string localIP = Microsoft.VisualBasic.Interaction.InputBox("Enter local network interface (IP Address)");
-            string server = (localIP == SERVER_IP) ? "localhost" : SERVER_IP;
+            string name = Microsoft.VisualBasic.Interaction.InputBox("Select name", "Select name", Environment.UserName);
+            string localIP = Microsoft.VisualBasic.Interaction.InputBox("Enter local network interface (IP Address)", "Select network", "localhost");
+            string server = (localIP == SERVER_IP || localIP == "localhost") ? "localhost" : SERVER_IP;
+            string mcInterface = server == "localhost" ? SERVER_IP : server;
 
             ID = gameConnection.Connect(name, server, SERVER_PORT);
-            gameConnection.ConnectToMcServer(SERVER_MC_IP, SERVER_MC_PORT, localIP);
-            gameConnection.DataReceived += UpdateGame;
+            gameConnection.ConnectToMcServer(SERVER_MC_IP, SERVER_MC_PORT, mcInterface);
+            gameConnection.StateReceived += MovePlayers;
+            gameConnection.PlayerDataReceived += UpdatePlayers;
 
             KeyDown += new KeyEventHandler(keyManager.KeyDown);
             KeyUp += new KeyEventHandler(keyManager.KeyUp);
@@ -73,11 +75,11 @@ namespace NodeOnline
             gameConnection.SendInput(ID, mask);
         }
 
-        private void UpdateGame(object sender, EventArgs e)
+        private void MovePlayers(object sender, EventArgs e)
         {
             Dispatcher.BeginInvoke(new Action(() =>
             {
-                byte[] state = gameConnection.GetState(out int numberOfBytes);
+                byte[] state = gameConnection.GetGameStateBuffer(out int numberOfBytes);
                 for (int i = 0; i < numberOfBytes; i += 5)
                 {
                     byte id = state[i];
@@ -104,6 +106,33 @@ namespace NodeOnline
                     Canvas.SetTop(player.UI, player.Y);
 
                     player.IsUpdated = true;
+                }
+            }));
+        }
+
+        private void UpdatePlayers(object sender, EventArgs e)
+        {
+            Dispatcher.BeginInvoke(new Action(() =>
+            {
+                byte[] data = gameConnection.GetPlayerDataBuffer(out int numberOfBytes);
+                for(int i = 0; i < numberOfBytes; i += 21)
+                {
+                    byte id = data[i];
+                    Player player = players.FirstOrDefault(p => p.ID == id);
+                    if(player == null)
+                    {
+                        throw new Exception("Received player data for unknown player!");
+                    }
+
+                    string name = System.Text.Encoding.Default.GetString(data, i + 1, 16);
+                    byte r = data[i + 17];
+                    byte g = data[i + 18];
+                    byte b = data[i + 19];
+                    int health = data[i + 20];
+
+                    player.Name = name;
+                    player.SetColor(r, g, b);
+                    player.Health = health;
                 }
             }));
         }
