@@ -31,23 +31,25 @@ module.exports.updateGame = function(){
             players[id].y--;
         if((mask & 2) > 0 && players[id].x > 0)
             players[id].x--;
-        if((mask & 4) > 0 && players[id].y < 255)
+        if((mask & 4) > 0 && players[id].y < 800)
             players[id].y++;
-        if((mask & 8) > 0 && players[id].x < 255)
+        if((mask & 8) > 0 && players[id].x < 640)
             players[id].x++;
     }
     inputs = [];
 }
 
 module.exports.getState = function(){
-    var bytesPerPlayer = 3;
+    var bytesPerPlayer = 5;
     var state = new Uint8Array(numberOfPlayers*bytesPerPlayer);
     var i = 0;
     for(var prop in players){
         if(players.hasOwnProperty(prop)){
             state[i*bytesPerPlayer + 0] = prop;
-            state[i*bytesPerPlayer + 1] = players[prop].x;
-            state[i*bytesPerPlayer + 2] = players[prop].y;
+            state[i*bytesPerPlayer + 1] = (players[prop].x & 0xFF00) >> 8;
+            state[i*bytesPerPlayer + 2] = players[prop].x & 0xFF;
+            state[i*bytesPerPlayer + 3] = (players[prop].y & 0xFF00) >> 8;
+            state[i*bytesPerPlayer + 4] = players[prop].y & 0xFF;
 
             i++;
         }

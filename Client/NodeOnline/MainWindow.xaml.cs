@@ -78,11 +78,11 @@ namespace NodeOnline
             Dispatcher.BeginInvoke(new Action(() =>
             {
                 byte[] state = gameConnection.GetState(out int numberOfBytes);
-                for (int i = 0; i < numberOfBytes; i += 3)
+                for (int i = 0; i < numberOfBytes; i += 5)
                 {
                     byte id = state[i];
-                    byte x = state[i + 1];
-                    byte y = state[i + 2];
+                    int x = (state[i + 1] << 8) | state[i + 2];
+                    int y = (state[i + 3] << 8) | state[i + 4];
 
                     Player player = players.FirstOrDefault(p => p.ID == id);
                     if (player == null)
