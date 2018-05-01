@@ -40,6 +40,7 @@ namespace NodeOnline.Logic
                     target += _delay;
                     Tick?.Invoke(this, EventArgs.Empty);
                 }
+                Thread.Sleep(1);
             }
         }
 
