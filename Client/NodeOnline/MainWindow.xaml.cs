@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
@@ -42,7 +43,7 @@ namespace NodeOnline
             string name = Microsoft.VisualBasic.Interaction.InputBox("Select name", "Select name", Environment.UserName);
             string localIP = Microsoft.VisualBasic.Interaction.InputBox("Enter local network interface (IP Address)", "Select network", "localhost");
             string server = (localIP == SERVER_IP || localIP == "localhost") ? "localhost" : SERVER_IP;
-            string mcInterface = server == "localhost" ? SERVER_IP : server;
+            string mcInterface = server == "localhost" ? SERVER_IP : localIP;
 
             ID = gameConnection.Connect(name, server, SERVER_PORT);
             gameConnection.ConnectToMcServer(SERVER_MC_IP, SERVER_MC_PORT, mcInterface);
@@ -92,6 +93,7 @@ namespace NodeOnline
                         Player newPlayer = new Player(id, "Player" + id, x, y);
                         players.Add(newPlayer);
                         paintCanvas.Children.Add(newPlayer.UI);
+                        paintCanvas.Children.Add(newPlayer.NameText);
                     }
                     else
                     {
@@ -102,12 +104,31 @@ namespace NodeOnline
 
                 foreach (Player player in players.Where(p => !p.IsUpdated))
                 {
-                    Canvas.SetLeft(player.UI, player.X);
-                    Canvas.SetTop(player.UI, player.Y);
+                    Canvas.SetLeft(player.UI, player.X - Player.SIZE/2);
+                    Canvas.SetTop(player.UI, player.Y - Player.SIZE/2);
+
+                    int width = (int)Math.Round(MeasureString(player.NameText).Width);
+                    Canvas.SetLeft(player.NameText, player.X - width/2);
+                    Canvas.SetTop(player.NameText, player.Y + Player.SIZE/2);
 
                     player.IsUpdated = true;
                 }
             }));
+        }
+
+        private Size MeasureString(TextBlock textBlock)
+        {
+            var formattedText = new FormattedText(
+                textBlock.Text,
+                CultureInfo.CurrentCulture,
+                FlowDirection.LeftToRight,
+                new Typeface(textBlock.FontFamily, textBlock.FontStyle, textBlock.FontWeight, textBlock.FontStretch),
+                textBlock.FontSize,
+                Brushes.Black,
+                new NumberSubstitution(),
+                TextFormattingMode.Display);
+
+            return new Size(formattedText.Width, formattedText.Height);
         }
 
         private void UpdatePlayers(object sender, EventArgs e)
@@ -124,7 +145,12 @@ namespace NodeOnline
                         throw new Exception("Received player data for unknown player!");
                     }
 
-                    string name = System.Text.Encoding.Default.GetString(data, i + 1, 16);
+                    int length;
+                    byte point = 1;
+                    for (length = 0; length < 16 && point != 0; length++)
+                        point = data[i + 1 + length + 1];
+
+                    string name = System.Text.Encoding.Default.GetString(data, i + 1, length);
                     byte r = data[i + 17];
                     byte g = data[i + 18];
                     byte b = data[i + 19];

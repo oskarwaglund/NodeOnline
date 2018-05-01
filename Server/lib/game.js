@@ -14,9 +14,9 @@ module.exports.addPlayer = function (NAME){
         x:100,
         y:100,
         color:{
-            r:255,
+            r:0,
             g:0,
-            b:0
+            b:100
         },
         health:100
     };
@@ -64,10 +64,8 @@ module.exports.getState = function(){
             state[1 + (i*bytesPerPlayer) + 4] = players[prop].y & 0xFF;
 
             i++;
-        }
-        
+        }        
     }
-    
     return state;
 }
 
@@ -87,6 +85,9 @@ module.exports.getPlayerData = function(){
             for(var j = 0; j < Math.min(players[prop].name.length, 16); j++){
                 data[1 + i*bytesPerPlayer + 1 + j] = players[prop].name.charCodeAt(j);
             }
+            for(var j = Math.min(players[prop].name.length, 16); j < 16; j++){
+                data[1 + i*bytesPerPlayer + 1 + j] = 0;
+            }
             
             data[1 + i*bytesPerPlayer + 17] = players[prop].color.r;
             data[1 + i*bytesPerPlayer + 18] = players[prop].color.g;
@@ -97,6 +98,5 @@ module.exports.getPlayerData = function(){
             i++;
         }
     }
-
     return data;
 }

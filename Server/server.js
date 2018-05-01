@@ -25,10 +25,18 @@ localSocket.on('error', (err) => {
   server.close();
 });
 
+function bin2String(array) {
+  var result = "";
+  for (var i = 0; i < array.length; i++) {
+    result += String.fromCharCode(array[i], 2);
+  }
+  return result;
+}
+
 var onSocketMessage = function(msg, rinfo, socket){
   switch(msg[0]){
     case CONNECT: 
-      let id = game.addPlayer('Bob');
+      let id = game.addPlayer(bin2String(msg.slice(1)));
       console.log("Player " + msg.slice(1) + " connected with id " + id + "!");
       let reply = new Uint8Array([CONNECT, id]);
       socket.send(reply, rinfo.port, rinfo.address);
@@ -72,19 +80,25 @@ remoteSocket.bind({
   exclusive: true
 });
 
+function broadCastGameState(){
+  var state = game.getState();
+  if(state.length > 1)
+    mcSocket.send(state, mcPort, mcIP);
+}
+
+function broadCastPlayerData(){
+  var playerData = game.getPlayerData();
+    if(playerData.length > 1)
+      mcSocket.send(playerData, mcPort, mcIP);
+}
+
 gameloop.setGameLoop(function(delta) {
 	// `delta` is the delta time from the last frame
   frameCount++;
   game.updateGame();
-
-  var state = game.getState();
-  if(state.length > 1)
-    mcSocket.send(state, mcPort, mcIP);
-
-  if(frameCount % 100 == 0){
-    var playerData = game.getPlayerData();
-    if(playerData.length > 1)
-      mcSocket.send(playerData, mcPort, mcIP);
+  broadCastGameState();
+  if(frameCount % 40 == 0){
+    broadCastPlayerData();
   }
 
 }, 25);

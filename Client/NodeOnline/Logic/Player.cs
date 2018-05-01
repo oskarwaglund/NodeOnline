@@ -1,4 +1,5 @@
 ﻿using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Shapes;
 
@@ -6,14 +7,29 @@ namespace NodeOnline.Logic
 {
     class Player
     {
+        public static int SIZE = 20;
+
         public int ID
         {
             get;
         }
 
+        private string _name;
         public string Name
         {
-            get; set;
+            get
+            {
+                return _name;
+            }
+            set
+            {
+                if(_name != value)
+                {
+                    _name = value;
+                    _nameText.Text = value;
+                    IsUpdated = false;
+                }
+            }
         }
 
         private int _x;
@@ -83,11 +99,23 @@ namespace NodeOnline.Logic
             }
         }
 
+        public TextBlock _nameText;
+        public TextBlock NameText
+        {
+            get
+            {
+                return _nameText;
+            }
+        }
+
         public void SetColor(byte r, byte g, byte b)
         {
             if(r != _r || g != _g || b != _b)
             {
                 _ui.Fill = new SolidColorBrush(Color.FromRgb(r, g, b));
+                _r = r;
+                _g = g;
+                _b = b;
                 IsUpdated = false;
             }
         }
@@ -95,20 +123,21 @@ namespace NodeOnline.Logic
         public Player(int id, string name, int x, int y)
         {
             ID = id;
-            X = x;
-            Y = y;
-            Name = name;
+            _x = x;
+            _y = y;
+            _name = name;
             IsUpdated = false;
             _ui = new Ellipse
             {
-                Width = 20,
-                Height = 20,
+                Width = SIZE,
+                Height = SIZE,
                 Fill = Brushes.Green
             };
+
+            _nameText = new TextBlock
+            {
+                Text = Name
+            };
         }
-
-
-
-
     }
 }
