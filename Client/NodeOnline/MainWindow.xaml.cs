@@ -49,8 +49,16 @@ namespace NodeOnline
 
             Closing += OnClose;
 
-            colorPicker = new ColorPicker(paintCanvas);
+            Random rnd = new Random();
+            Color startColor = Color.FromRgb(
+                (byte)rnd.Next(0, 255),
+                (byte)rnd.Next(0, 255),
+                (byte)rnd.Next(0, 255));
+
+            colorPicker = new ColorPicker(paintCanvas, startColor);
             colorPicker.OnUpdate += ColorPickerOnOnUpdate;
+
+            gameConnection.UpdatePlayerColor(startColor);
         }
 
         private void ColorPickerOnOnUpdate(object sender, EventArgs eventArgs)

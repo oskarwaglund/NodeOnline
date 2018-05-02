@@ -19,19 +19,24 @@ namespace NodeOnline.Logic
 
         public event EventHandler OnUpdate;
 
-        public ColorPicker(Canvas canvas)
+        private const int SLIDER_WIDTH = 150;
+        private const int SLIDER_X = 400;
+        private const int SLIDER_Y = 300;
+        private const int SLIDER_SPACING = 25;
+
+        public ColorPicker(Canvas canvas, Color color)
         {
             _canvas = canvas;
 
-            redSlider = CreateSlider(400, 300, 255);
-            blueSlider = CreateSlider(400, 325, 0);
-            greenSlider = CreateSlider(400, 350, 0);
+            redSlider = CreateSlider(SLIDER_X, SLIDER_Y, color.R);
+            blueSlider = CreateSlider(SLIDER_X, SLIDER_Y + SLIDER_SPACING, color.G);
+            greenSlider = CreateSlider(SLIDER_X, SLIDER_Y + SLIDER_SPACING*2, color.B);
 
             colorShower = new Ellipse
             {
                 Width = 20,
                 Height = 20,
-                Fill = new SolidColorBrush(GetCurrentColor())
+                Fill = new SolidColorBrush(color)
             };
 
             _canvas.Children.Add(colorShower);
@@ -41,7 +46,8 @@ namespace NodeOnline.Logic
             Button updateButton = new Button
             {
                 Width = 70,
-                Height = 20
+                Height = 20,
+                Content = "Update"
             };
             _canvas.Children.Add(updateButton);
             Canvas.SetLeft(updateButton, 430);

@@ -16,7 +16,6 @@ namespace NodeOnline.Logic
         const byte STATE         = 0x10;
         const byte PLAYER_DATA   = 0x11;
 
-        byte[] recvBuffer;
         byte[] gameStateBuffer;
         byte[] playerDataBuffer;
 
@@ -26,8 +25,6 @@ namespace NodeOnline.Logic
         UdpClient client;
 
         bool running;
-
-        Stopwatch watch = new Stopwatch();
 
         public event EventHandler StateReceived;
         public event EventHandler PlayerDataReceived;
@@ -49,7 +46,6 @@ namespace NodeOnline.Logic
                 throw new Exception("Could not connect to server!");
             }
 
-            recvBuffer = new byte[1000];
             gameStateBuffer = new byte[1000];
             playerDataBuffer = new byte[1000];
 

@@ -24,7 +24,7 @@ namespace NodeOnline.Logic
             
             running = true;
 
-            Thread thread = new Thread(new ThreadStart(DoWork));
+            Thread thread = new Thread(DoWork);
             thread.SetApartmentState(ApartmentState.STA);
             thread.Start();
         }
