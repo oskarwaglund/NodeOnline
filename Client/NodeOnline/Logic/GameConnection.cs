@@ -16,7 +16,6 @@ namespace NodeOnline.Logic
         const byte STATE         = 0x10;
         const byte PLAYER_DATA   = 0x11;
 
-        Socket mcSocket;
         byte[] recvBuffer;
         byte[] gameStateBuffer;
         byte[] playerDataBuffer;
@@ -50,50 +49,37 @@ namespace NodeOnline.Logic
                 throw new Exception("Could not connect to server!");
             }
 
-            playerId = recv[1];
-        }
-
-        public void ConnectToMcServer(string ip, int port, string localIP)
-        {
-            mcSocket = new Socket(AddressFamily.InterNetwork,
-                SocketType.Dgram,
-                ProtocolType.Udp);
-            EndPoint localEP = new IPEndPoint(IPAddress.Parse(localIP), port);
-            mcSocket.Bind(localEP);
-
-            MulticastOption mcOption = new MulticastOption(IPAddress.Parse(ip), IPAddress.Parse(localIP));
-            mcSocket.SetSocketOption(SocketOptionLevel.IP,
-                SocketOptionName.AddMembership,
-                mcOption);
-
             recvBuffer = new byte[1000];
             gameStateBuffer = new byte[1000];
             playerDataBuffer = new byte[1000];
 
-            Thread thread = new Thread(new ThreadStart(Listen));
+            playerId = recv[1];
+
+            Thread thread = new Thread(Listen);
             running = true;
             thread.Start();
         }
 
         public void Listen()
         {
-            EndPoint remoteEP = new IPEndPoint(IPAddress.Any, 0);
+            IPEndPoint remoteEP = new IPEndPoint(IPAddress.Any, 0);
             while (running)
             {
-                int bytes = mcSocket.ReceiveFrom(recvBuffer, ref remoteEP);
-                switch (recvBuffer[0])
+                byte[] recv = client.Receive(ref remoteEP);
+                int bufferLength = recv.Length - 1;
+                switch (recv[0])
                 {
                     case STATE:
-                        Array.Copy(recvBuffer, 1, gameStateBuffer, 0, bytes-1);
-                        bytesInGameStateBuffer = bytes-1;
+                        Array.Copy(recv, 1, gameStateBuffer, 0, bufferLength);
+                        bytesInGameStateBuffer = bufferLength;
                         if (StateReceived != null)
                         {
                             StateReceived.Invoke(this, EventArgs.Empty);
                         }
                         break;
                     case PLAYER_DATA:
-                        Array.Copy(recvBuffer, 1, playerDataBuffer, 0, bytes - 1);
-                        bytesInPlayerDataBuffer = bytes-1;
+                        Array.Copy(recv, 1, playerDataBuffer, 0, bufferLength);
+                        bytesInPlayerDataBuffer = bufferLength;
                         if (PlayerDataReceived != null)
                         {
                             PlayerDataReceived.Invoke(this, EventArgs.Empty);

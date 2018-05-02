@@ -26,9 +26,6 @@ namespace NodeOnline
         private const string SERVER_IP = "192.168.0.7";
         private const int SERVER_PORT = 12345;
 
-        private const string SERVER_MC_IP = "224.1.2.3";
-        private const int SERVER_MC_PORT = 6000;
-
         private GameConnection gameConnection = new GameConnection();
 
         private PreciseTimer preciseTimer;
@@ -41,15 +38,13 @@ namespace NodeOnline
             string name = Microsoft.VisualBasic.Interaction.InputBox("Select name", "Select name", Environment.UserName);
             string localIP = Microsoft.VisualBasic.Interaction.InputBox("Enter local network interface (IP Address)", "Select network", "localhost");
             string server = (localIP == SERVER_IP || localIP == "localhost") ? "localhost" : SERVER_IP;
-            string mcInterface = server == "localhost" ? SERVER_IP : localIP;
 
             gameConnection.Connect(name, server, SERVER_PORT);
-            gameConnection.ConnectToMcServer(SERVER_MC_IP, SERVER_MC_PORT, mcInterface);
             gameConnection.StateReceived += MovePlayers;
             gameConnection.PlayerDataReceived += UpdatePlayers;
             
-            KeyDown += new KeyEventHandler(keyManager.KeyDown);
-            KeyUp += new KeyEventHandler(keyManager.KeyUp);
+            KeyDown += keyManager.KeyDown;
+            KeyUp += keyManager.KeyUp;
 
             preciseTimer = new PreciseTimer(25);
             preciseTimer.Tick += GameLoop;
