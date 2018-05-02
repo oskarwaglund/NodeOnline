@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Text;
 using System.Windows.Media;
 
@@ -23,12 +24,12 @@ namespace NodeOnline.Logic
             return packet.ToArray();
         }
 
-        public static byte[] Input(int id, byte mask)
+        public static byte[] Input(int id, byte[] input)
         {
-            byte[] packet = new byte[3];
+            byte[] packet = new byte[2 + input.Length];
             packet[0] = INPUT;
             packet[1] = (byte)id;
-            packet[2] = mask;
+            Array.Copy(input, 0, packet, 2, input.Length);
             return packet;
         }
 

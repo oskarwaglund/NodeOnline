@@ -91,15 +91,12 @@ namespace NodeOnline.Logic
             Send(PacketBuilder.ColorUpdate(playerId, color));
         }
 
-        public void SendInput(byte mask)
+        public void SendInput(byte[] input)
         {
-            if (mask != 0)
-            {
-                Send(PacketBuilder.Input(playerId, mask));
-            }
+            Send(PacketBuilder.Input(playerId, input));
         }
 
-        public void Send(byte[] packet)
+        private void Send(byte[] packet)
         {
             client.Send(packet, packet.Length);
         }

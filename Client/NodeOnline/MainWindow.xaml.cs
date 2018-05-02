@@ -21,7 +21,7 @@ namespace NodeOnline
     {
         List<Player> players = new List<Player>();
 
-        KeyManager keyManager = new KeyManager();
+        private KeyManager keyManager;
 
         private const string SERVER_IP = "192.168.0.7";
         private const int SERVER_PORT = 12345;
@@ -41,8 +41,7 @@ namespace NodeOnline
             gameConnection.StateReceived += MovePlayers;
             gameConnection.PlayerDataReceived += UpdatePlayers;
             
-            KeyDown += keyManager.KeyDown;
-            KeyUp += keyManager.KeyUp;
+            keyManager = new KeyManager(this);
 
             preciseTimer = new PreciseTimer(25);
             preciseTimer.Tick += GameLoop;
@@ -80,8 +79,11 @@ namespace NodeOnline
 
         private void SendInput()
         {
-            byte mask = keyManager.GetMask();
-            gameConnection.SendInput(mask);
+            byte[] input = keyManager.GetInput();
+            if (input != null)
+            {
+                gameConnection.SendInput(input);    
+            }
         }
 
         private void MovePlayers(object sender, EventArgs e)
