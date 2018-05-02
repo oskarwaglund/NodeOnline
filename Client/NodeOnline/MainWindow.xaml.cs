@@ -36,10 +36,8 @@ namespace NodeOnline
             InitializeComponent();
 
             string name = Microsoft.VisualBasic.Interaction.InputBox("Select name", "Select name", Environment.UserName);
-            string localIP = Microsoft.VisualBasic.Interaction.InputBox("Enter local network interface (IP Address)", "Select network", "localhost");
-            string server = (localIP == SERVER_IP || localIP == "localhost") ? "localhost" : SERVER_IP;
 
-            gameConnection.Connect(name, server, SERVER_PORT);
+            gameConnection.Connect(name, SERVER_IP, SERVER_PORT);
             gameConnection.StateReceived += MovePlayers;
             gameConnection.PlayerDataReceived += UpdatePlayers;
             
