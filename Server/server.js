@@ -20,6 +20,8 @@ const CONNECT = 0;
 const LEAVE = 1;
 const INPUT = 2;
 
+const UPDATE_COLOR = 5;
+
 localSocket.on('error', (err) => {
   console.log(`server error:\n${err.stack}`);
   server.close();
@@ -43,6 +45,9 @@ var onSocketMessage = function(msg, rinfo, socket){
       break;
     case INPUT:
       game.addInput(msg);
+      break;
+    case UPDATE_COLOR:
+      game.updateColor(msg);
       break;
   }
 }

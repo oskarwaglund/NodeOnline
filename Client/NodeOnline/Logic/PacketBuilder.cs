@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Text;
+using System.Windows.Media;
 
 namespace NodeOnline.Logic
 {
@@ -8,6 +9,8 @@ namespace NodeOnline.Logic
         public const byte CONNECT = 0;
         public const byte LEAVE = 1;
         public const byte INPUT = 2;
+
+        public const byte UPDATE_COLOR = 5;
             
 
         public static byte[] Connect(string name)
@@ -26,6 +29,18 @@ namespace NodeOnline.Logic
             packet[0] = INPUT;
             packet[1] = (byte)id;
             packet[2] = mask;
+            return packet;
+        }
+
+        public static byte[] ColorUpdate(int id, Color color)
+        {
+            byte[] packet = new byte[5];
+            packet[0] = UPDATE_COLOR;
+            packet[1] = (byte)id;
+            packet[2] = color.R;
+            packet[3] = color.G;
+            packet[4] = color.B;
+
             return packet;
         }
     }

@@ -7,6 +7,7 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Windows.Media;
 
 namespace NodeOnline.Logic
 {
@@ -32,7 +33,9 @@ namespace NodeOnline.Logic
         public event EventHandler StateReceived;
         public event EventHandler PlayerDataReceived;
 
-        public int Connect(string name, string ip, int port)
+        private int playerId;
+
+        public void Connect(string name, string ip, int port)
         {
             client = new UdpClient();
             client.Connect(ip, port);
@@ -47,7 +50,7 @@ namespace NodeOnline.Logic
                 throw new Exception("Could not connect to server!");
             }
 
-            return recv[1];
+            playerId = recv[1];
         }
 
         public void ConnectToMcServer(string ip, int port, string localIP)
@@ -101,18 +104,27 @@ namespace NodeOnline.Logic
             }
         }
 
-        public void Stop()
+        public void UpdatePlayerColor(Color color)
         {
-            running = false;
+            Send(PacketBuilder.ColorUpdate(playerId, color));
         }
 
-        public void SendInput(int id, byte mask)
+        public void SendInput(byte mask)
         {
             if (mask != 0)
             {
-                byte[] packet = PacketBuilder.Input(id, mask);
-                client.Send(packet, packet.Length);
+                Send(PacketBuilder.Input(playerId, mask));
             }
+        }
+
+        public void Send(byte[] packet)
+        {
+            client.Send(packet, packet.Length);
+        }
+
+        public void Stop()
+        {
+            running = false;
         }
 
         public byte[] GetGameStateBuffer(out int numberOfBytes)

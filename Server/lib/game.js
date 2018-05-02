@@ -31,6 +31,13 @@ module.exports.addInput = function(INPUT){
     inputs.push(INPUT);
 }
 
+module.exports.updateColor = function(msg){
+    var id = msg[1];
+    player[id].color.r = msg[2];
+    player[id].color.g = msg[3];
+    player[id].color.b = msg[4];
+}
+
 module.exports.updateGame = function(){
     for(var i = 0; i < inputs.length; i++){
         let id = inputs[i][1];

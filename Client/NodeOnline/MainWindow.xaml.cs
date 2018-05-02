@@ -8,7 +8,9 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
+using System.Windows.Shapes;
 using System.Windows.Threading;
+using Microsoft.VisualBasic.CompilerServices;
 
 namespace NodeOnline
 {
@@ -17,9 +19,6 @@ namespace NodeOnline
     /// </summary>
     public partial class MainWindow : Window
     {
-        Brush color = Brushes.Blue;
-        System.TimeSpan interval = new TimeSpan(100000);
-
         List<Player> players = new List<Player>();
 
         KeyManager keyManager = new KeyManager();
@@ -32,9 +31,8 @@ namespace NodeOnline
 
         private GameConnection gameConnection = new GameConnection();
 
-        private int ID;
-
-        PreciseTimer preciseTimer;
+        private PreciseTimer preciseTimer;
+        private ColorPicker colorPicker;
 
         public MainWindow()
         {
@@ -45,11 +43,11 @@ namespace NodeOnline
             string server = (localIP == SERVER_IP || localIP == "localhost") ? "localhost" : SERVER_IP;
             string mcInterface = server == "localhost" ? SERVER_IP : localIP;
 
-            ID = gameConnection.Connect(name, server, SERVER_PORT);
+            gameConnection.Connect(name, server, SERVER_PORT);
             gameConnection.ConnectToMcServer(SERVER_MC_IP, SERVER_MC_PORT, mcInterface);
             gameConnection.StateReceived += MovePlayers;
             gameConnection.PlayerDataReceived += UpdatePlayers;
-
+            
             KeyDown += new KeyEventHandler(keyManager.KeyDown);
             KeyUp += new KeyEventHandler(keyManager.KeyUp);
 
@@ -57,6 +55,15 @@ namespace NodeOnline
             preciseTimer.Tick += GameLoop;
 
             Closing += OnClose;
+
+            colorPicker = new ColorPicker(paintCanvas);
+            colorPicker.OnUpdate += ColorPickerOnOnUpdate;
+        }
+
+        private void ColorPickerOnOnUpdate(object sender, EventArgs eventArgs)
+        {
+            Color color = colorPicker.GetCurrentColor();
+            gameConnection.UpdatePlayerColor(color);
         }
 
         void OnClose(object sender, EventArgs e)
@@ -73,7 +80,7 @@ namespace NodeOnline
         private void SendInput()
         {
             byte mask = keyManager.GetMask();
-            gameConnection.SendInput(ID, mask);
+            gameConnection.SendInput(mask);
         }
 
         private void MovePlayers(object sender, EventArgs e)
@@ -163,6 +170,6 @@ namespace NodeOnline
                     player.Health = health;
                 }
             }));
-        }
+        }  
     }
 }
