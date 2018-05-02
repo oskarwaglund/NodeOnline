@@ -5,15 +5,6 @@ const game = require('./lib/game');
 const localSocket = dgram.createSocket('udp4');
 const remoteSocket = dgram.createSocket('udp4');
 
-var mcIP = '224.1.2.3';
-var mcPort = 6000;
-var mcSocket = dgram.createSocket("udp4"); 
-mcSocket.bind(mcPort, function(){
-  mcSocket.setBroadcast(true)
-  mcSocket.setMulticastTTL(10);
-  mcSocket.addMembership(mcIP);
-});
-
 var frameCount = 0;
 
 const CONNECT = 0;
@@ -21,6 +12,8 @@ const LEAVE = 1;
 const INPUT = 2;
 
 const UPDATE_COLOR = 5;
+
+var connections = {};
 
 localSocket.on('error', (err) => {
   console.log(`server error:\n${err.stack}`);
@@ -42,6 +35,10 @@ var onSocketMessage = function(msg, rinfo, socket){
       console.log("Player " + msg.slice(1) + " connected with id " + id + "!");
       let reply = new Uint8Array([CONNECT, id]);
       socket.send(reply, rinfo.port, rinfo.address);
+      connections[id] = {
+        addr: rinfo.address,
+        port: rinfo.port
+      }
       break;
     case INPUT:
       game.addInput(msg);
@@ -88,13 +85,20 @@ remoteSocket.bind({
 function broadCastGameState(){
   var state = game.getState();
   if(state.length > 1)
-    mcSocket.send(state, mcPort, mcIP);
+    for(var id in connections)
+    {
+      if(connections.hasOwnProperty(id))
+        remoteSocket.send(state, connections[id].port, connections[id].addr);
+    } 
 }
 
 function broadCastPlayerData(){
   var playerData = game.getPlayerData();
-    if(playerData.length > 1)
-      mcSocket.send(playerData, mcPort, mcIP);
+  for(var id in connections)
+  {
+    if(connections.hasOwnProperty(id))
+      remoteSocket.send(playerData, connections[id].port, connections[id].addr);
+  }
 }
 
 gameloop.setGameLoop(function(delta) {

@@ -6,11 +6,11 @@ var inputs = [];
 const STATE         = 0x10;
 const PLAYER_DATA   = 0x11;
 
-module.exports.addPlayer = function (NAME){
-    var ID = nextPlayerId++;
+module.exports.addPlayer = function (_name){
+    var id = nextPlayerId++;
 
     var player = {
-        name:NAME,
+        name:_name,
         x:100,
         y:100,
         color:{
@@ -21,21 +21,21 @@ module.exports.addPlayer = function (NAME){
         health:100
     };
 
-    players[ID] = player;
+    players[id] = player;
     numberOfPlayers++;
 
-    return ID;
+    return id;
 }
 
-module.exports.addInput = function(INPUT){
-    inputs.push(INPUT);
+module.exports.addInput = function(_input){
+    inputs.push(_input);
 }
 
-module.exports.updateColor = function(msg){
-    var id = msg[1];
-    players[id].color.r = msg[2];
-    players[id].color.g = msg[3];
-    players[id].color.b = msg[4];
+module.exports.updateColor = function(_msg){
+    var id = _msg[1];
+    players[id].color.r = _msg[2];
+    players[id].color.g = _msg[3];
+    players[id].color.b = _msg[4];
 }
 
 module.exports.updateGame = function(){
