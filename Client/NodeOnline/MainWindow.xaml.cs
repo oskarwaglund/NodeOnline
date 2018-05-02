@@ -80,7 +80,8 @@ namespace NodeOnline
         {
             Dispatcher.BeginInvoke(new Action(() =>
             {
-                byte[] state = gameConnection.GetGameStateBuffer(out int numberOfBytes);
+                int numberOfBytes;
+                byte[] state = gameConnection.GetGameStateBuffer(out numberOfBytes);
                 for (int i = 0; i < numberOfBytes; i += 5)
                 {
                     byte id = state[i];
@@ -135,7 +136,8 @@ namespace NodeOnline
         {
             Dispatcher.BeginInvoke(new Action(() =>
             {
-                byte[] data = gameConnection.GetPlayerDataBuffer(out int numberOfBytes);
+                int numberOfBytes;
+                byte[] data = gameConnection.GetPlayerDataBuffer(out numberOfBytes);
                 for(int i = 0; i < numberOfBytes; i += 21)
                 {
                     byte id = data[i];

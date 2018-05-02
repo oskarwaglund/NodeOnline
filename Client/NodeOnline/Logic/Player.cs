@@ -11,7 +11,7 @@ namespace NodeOnline.Logic
 
         public int ID
         {
-            get;
+            get; private set;
         }
 
         private string _name;

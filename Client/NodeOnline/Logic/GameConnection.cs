@@ -83,12 +83,18 @@ namespace NodeOnline.Logic
                     case STATE:
                         Array.Copy(recvBuffer, 1, gameStateBuffer, 0, bytes-1);
                         bytesInGameStateBuffer = bytes-1;
-                        StateReceived?.Invoke(this, EventArgs.Empty);
+                        if (StateReceived != null)
+                        {
+                            StateReceived.Invoke(this, EventArgs.Empty);
+                        }
                         break;
                     case PLAYER_DATA:
                         Array.Copy(recvBuffer, 1, playerDataBuffer, 0, bytes - 1);
                         bytesInPlayerDataBuffer = bytes-1;
-                        PlayerDataReceived?.Invoke(this, EventArgs.Empty);
+                        if (PlayerDataReceived != null)
+                        {
+                            PlayerDataReceived.Invoke(this, EventArgs.Empty);
+                        }
                         break;
                 }
                 

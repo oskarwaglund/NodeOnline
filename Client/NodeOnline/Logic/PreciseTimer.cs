@@ -38,7 +38,10 @@ namespace NodeOnline.Logic
                 if (sw.ElapsedMilliseconds >= target)
                 {
                     target += _delay;
-                    Tick?.Invoke(this, EventArgs.Empty);
+                    if (Tick != null)
+                    {
+                        Tick.Invoke(this, EventArgs.Empty);   
+                    }
                 }
                 Thread.Sleep(1);
             }
