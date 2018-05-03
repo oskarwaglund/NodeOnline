@@ -7,6 +7,10 @@ var bullets = [];
 const STATE         = 0x10;
 const PLAYER_DATA   = 0x11;
 
+const BULLET_SPEED = 10;
+const HIT_DISTANCE = 20;
+const HIT_DISTANCE_2 = HIT_DISTANCE * HIT_DISTANCE;
+
 module.exports.addPlayer = function (_name){
     var id = idCounter++;
 
@@ -63,7 +67,7 @@ module.exports.updateGame = function(){
             var dX = clickX - X;
             var dY = clickY - Y;
             
-            var length = Math.sqrt(dX*dX + dY*dY)
+            var length = Math.sqrt(dX*dX + dY*dY) / BULLET_SPEED;
 
             dx /= length;
             dY /= length;
@@ -80,6 +84,25 @@ module.exports.updateGame = function(){
             bullets.push(bullet);
         }
     }
+
+    for(var i = bullets.length-1; i >= 0; i--){
+        bullets[i].x += bullets[i].dx;
+        bullets[i].y += bullets[i].dy;
+
+        for(var playerId in players){
+            if(players.hasOwnProperty(playerId)){
+                var dx = players[playerId].x - bullets[i].x;
+                var dy = players[playerId].y - bullets[i].y;
+
+                if(dx*dx + dy*dy <= HIT_DISTANCE_2){
+                    bullets.splice(i, 1);
+                    players[playerId].health -= 10;
+                    break;
+                }
+            }
+        }
+    }
+
     inputs = [];
 }
 

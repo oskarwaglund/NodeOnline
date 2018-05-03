@@ -85,19 +85,18 @@ remoteSocket.bind({
 function broadCastGameState(){
   var state = game.getState();
   if(state.length > 1)
-    for(var id in connections)
-    {
-      if(connections.hasOwnProperty(id))
-        remoteSocket.send(state, connections[id].port, connections[id].addr);
-    } 
+    broadCast(state);
 }
 
 function broadCastPlayerData(){
-  var playerData = game.getPlayerData();
+  broadCast(game.getPlayerData());
+}
+
+function broadCast(msg){
   for(var id in connections)
   {
     if(connections.hasOwnProperty(id))
-      remoteSocket.send(playerData, connections[id].port, connections[id].addr);
+      remoteSocket.send(msg, connections[id].port, connections[id].addr);
   }
 }
 
