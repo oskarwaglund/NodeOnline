@@ -1,13 +1,14 @@
-var nextPlayerId = 0;
+var idCounter = 0;
 var players = {};
 var numberOfPlayers = 0;
 var inputs = [];
+var bullets = [];
 
 const STATE         = 0x10;
 const PLAYER_DATA   = 0x11;
 
 module.exports.addPlayer = function (_name){
-    var id = nextPlayerId++;
+    var id = idCounter++;
 
     var player = {
         name:_name,
@@ -51,28 +52,77 @@ module.exports.updateGame = function(){
             players[id].y++;
         if((mask & 8) > 0 && players[id].x < 800)
             players[id].x++;
+
+        if(inputs[i].length > 3){
+            var X = player[id].x;
+            var Y = player[id].y;
+            
+            var clickX = (input[3] << 8) + input[4];
+            var clickY = (input[5] << 8) + input[6]; 
+            
+            var dX = clickX - X;
+            var dY = clickY - Y;
+            
+            var length = Math.sqrt(dX*dX + dY*dY)
+
+            dx /= length;
+            dY /= length;
+
+            var bullet = {
+                id: idCounter++,
+                playerId: id,
+                x: X,
+                y: Y,
+                dx: dX,
+                dy: dY
+            }
+
+            bullets.push(bullet);
+        }
     }
     inputs = [];
 }
 
 module.exports.getState = function(){
     var bytesPerPlayer = 5;
-    var state = new Uint8Array(1+numberOfPlayers*bytesPerPlayer);
-    var i = 0;
+    var bytesPerBullet = 5;
+
+    var stateLength = 1+numberOfPlayers*bytesPerPlayer + (bullets.length > 0 ? 2 + bullets.length*bytesPerBullet : 0)
+
+    var state = new Uint8Array(stateLength);
+    var i = 1;
 
     state[0] = STATE;
 
-    for(var prop in players){
-        if(players.hasOwnProperty(prop)){
-            state[1 + (i*bytesPerPlayer) + 0] = prop;
-            state[1 + (i*bytesPerPlayer) + 1] = (players[prop].x & 0xFF00) >> 8;
-            state[1 + (i*bytesPerPlayer) + 2] = players[prop].x & 0xFF;
-            state[1 + (i*bytesPerPlayer) + 3] = (players[prop].y & 0xFF00) >> 8;
-            state[1 + (i*bytesPerPlayer) + 4] = players[prop].y & 0xFF;
+    for(var playerId in players){
+        if(players.hasOwnProperty(playerId)){
+            state[i + 0] = playerId;
+            state[i + 1] = players[playerId].x >> 8;
+            state[i + 2] = players[playerId].x;
+            state[i + 3] = players[playerId].y >> 8;
+            state[i + 4] = players[playerId].y;
 
-            i++;
+            i += bytesPerPlayer;
         }        
     }
+
+    if(bullets.length > 0){
+        state[i+0] = 0xFF;
+        state[i+1] = 0xFF;
+
+        i += 2;
+
+        for(var bullet in bullets){
+            state[i+0] = bullet.id;
+            state[i+1] = bullet.x >> 8;
+            state[i+2] = bullet.x;
+            state[i+3] = bullet.y >> 8;
+            state[i+4] = bullet.y;
+
+            i += bytesPerBullet;
+        }
+    }
+
     return state;
 }
 

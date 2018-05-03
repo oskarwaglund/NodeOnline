@@ -20,6 +20,7 @@ namespace NodeOnline
     public partial class MainWindow : Window
     {
         List<Player> players = new List<Player>();
+        List<Bullet> bullets = new List<Bullet>(); 
 
         private KeyManager keyManager;
 
@@ -92,8 +93,15 @@ namespace NodeOnline
             {
                 int numberOfBytes;
                 byte[] state = gameConnection.GetGameStateBuffer(out numberOfBytes);
-                for (int i = 0; i < numberOfBytes; i += 5)
+                int i;
+                for (i = 0; i < numberOfBytes; i += 5)
                 {
+                    if (state[i] == 0xFF && state[i + 1] == 0xFF)
+                    {
+                        i += 2;
+                        break;
+                    }
+                    
                     byte id = state[i];
                     int x = (state[i + 1] << 8) | state[i + 2];
                     int y = (state[i + 3] << 8) | state[i + 4];
@@ -113,6 +121,26 @@ namespace NodeOnline
                     }
                 }
 
+                for (; i < numberOfBytes; i += 5)
+                {
+                    byte id = state[i];
+                    int x = (state[i + 1] << 8) | state[i + 2];
+                    int y = (state[i + 3] << 8) | state[i + 4];
+
+                    Bullet bullet = bullets.FirstOrDefault(b => b.Id == id);
+                    if (bullet == null)
+                    {
+                        Bullet newBullet = new Bullet(id, x, y);
+                        bullets.Add(newBullet);
+                        paintCanvas.Children.Add(newBullet.UI);
+                    }
+                    else
+                    {
+                        bullet.X = x;
+                        bullet.Y = y;
+                    }
+                }
+
                 foreach (Player player in players.Where(p => !p.IsUpdated))
                 {
                     Canvas.SetLeft(player.UI, player.X - Player.SIZE/2);
@@ -123,6 +151,12 @@ namespace NodeOnline
                     Canvas.SetTop(player.NameText, player.Y + Player.SIZE/2);
 
                     player.IsUpdated = true;
+                }
+
+                foreach (Bullet bullet in bullets)
+                {
+                    Canvas.SetLeft(bullet.UI, bullet.X - Bullet.Size/2);
+                    Canvas.SetTop(bullet.UI, bullet.Y - Bullet.Size/2);
                 }
             }));
         }
