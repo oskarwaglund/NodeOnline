@@ -11,6 +11,9 @@ const BULLET_SPEED = 10;
 const HIT_DISTANCE = 20;
 const HIT_DISTANCE_2 = HIT_DISTANCE * HIT_DISTANCE;
 
+const GAME_WIDTH = 600;
+const GAME_HEIGHT = 400;
+
 module.exports.addPlayer = function (_name){
     var id = idCounter++;
 
@@ -52,24 +55,24 @@ module.exports.updateGame = function(){
             players[id].y--;
         if((mask & 2) > 0 && players[id].x > 0)
             players[id].x--;
-        if((mask & 4) > 0 && players[id].y < 640)
+        if((mask & 4) > 0 && players[id].y < GAME_HEIGHT)
             players[id].y++;
-        if((mask & 8) > 0 && players[id].x < 800)
+        if((mask & 8) > 0 && players[id].x < GAME_WIDTH)
             players[id].x++;
 
         if(inputs[i].length > 3){
-            var X = player[id].x;
-            var Y = player[id].y;
+            var X = players[id].x;
+            var Y = players[id].y;
             
-            var clickX = (input[3] << 8) + input[4];
-            var clickY = (input[5] << 8) + input[6]; 
+            var clickX = (inputs[i][3] << 8) + inputs[i][4];
+            var clickY = (inputs[i][5] << 8) + inputs[i][6]; 
             
             var dX = clickX - X;
             var dY = clickY - Y;
             
             var length = Math.sqrt(dX*dX + dY*dY) / BULLET_SPEED;
 
-            dx /= length;
+            dX /= length;
             dY /= length;
 
             var bullet = {
@@ -89,12 +92,20 @@ module.exports.updateGame = function(){
         bullets[i].x += bullets[i].dx;
         bullets[i].y += bullets[i].dy;
 
+        if(bullets[i].x < 0 ||
+        bullets[i].x > GAME_WIDTH ||
+        bullets[i].y < 0 ||
+        bullets[i].y > GAME_HEIGHT){
+        bullets.splice(i, 1);
+            continue;
+        }
+
         for(var playerId in players){
             if(players.hasOwnProperty(playerId)){
                 var dx = players[playerId].x - bullets[i].x;
                 var dy = players[playerId].y - bullets[i].y;
 
-                if(dx*dx + dy*dy <= HIT_DISTANCE_2){
+                if(bullets[i].playerId != playerId && dx*dx + dy*dy <= HIT_DISTANCE_2){
                     bullets.splice(i, 1);
                     players[playerId].health -= 10;
                     break;
@@ -135,12 +146,12 @@ module.exports.getState = function(){
 
         i += 2;
 
-        for(var bullet in bullets){
-            state[i+0] = bullet.id;
-            state[i+1] = bullet.x >> 8;
-            state[i+2] = bullet.x;
-            state[i+3] = bullet.y >> 8;
-            state[i+4] = bullet.y;
+        for(var j = 0; j < bullets.length; j++){
+            state[i+0] = bullets[j].id;
+            state[i+1] = (bullets[j].x|0) >> 8;
+            state[i+2] = bullets[j].x|0;
+            state[i+3] = (bullets[j].y|0) >> 8;
+            state[i+4] = bullets[j].y|0;
 
             i += bytesPerBullet;
         }
