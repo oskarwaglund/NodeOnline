@@ -108,6 +108,10 @@ module.exports.updateGame = function(){
                 if(bullets[i].playerId != playerId && dx*dx + dy*dy <= HIT_DISTANCE_2){
                     bullets.splice(i, 1);
                     players[playerId].health -= 10;
+                    if(players[playerId].health <= 0){
+                        //Die
+                        players[playerId].health = 0;
+                    }
                     break;
                 }
             }
