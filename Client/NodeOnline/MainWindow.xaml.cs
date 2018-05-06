@@ -113,6 +113,7 @@ namespace NodeOnline
                         players.Add(newPlayer);
                         paintCanvas.Children.Add(newPlayer.UI);
                         paintCanvas.Children.Add(newPlayer.NameText);
+                        paintCanvas.Children.Add(newPlayer.HealthBar);
                     }
                     else
                     {
@@ -121,11 +122,16 @@ namespace NodeOnline
                     }
                 }
 
+                //Keep track of remaining bullets
+                List<int> remainingBullets = new List<int>();
+
                 for (; i < numberOfBytes; i += 5)
                 {
                     byte id = state[i];
                     int x = (state[i + 1] << 8) | state[i + 2];
                     int y = (state[i + 3] << 8) | state[i + 4];
+
+                    remainingBullets.Add(id);
 
                     Bullet bullet = bullets.FirstOrDefault(b => b.Id == id);
                     if (bullet == null)
@@ -141,6 +147,13 @@ namespace NodeOnline
                     }
                 }
 
+                //Remove bullets that have disappeared
+                foreach(Bullet bullet in bullets.Where(b => !remainingBullets.Contains(b.Id))){
+                    paintCanvas.Children.Remove(bullet.UI);
+                }
+                bullets.RemoveAll(b => !remainingBullets.Contains(b.Id));
+                
+
                 foreach (Player player in players.Where(p => !p.IsUpdated))
                 {
                     Canvas.SetLeft(player.UI, player.X - Player.SIZE/2);
@@ -149,6 +162,9 @@ namespace NodeOnline
                     int width = (int)Math.Round(MeasureString(player.NameText).Width);
                     Canvas.SetLeft(player.NameText, player.X - width/2);
                     Canvas.SetTop(player.NameText, player.Y + Player.SIZE/2);
+
+                    Canvas.SetLeft(player.HealthBar, player.X - Player.HEALTH_BAR_WIDTH / 2);
+                    Canvas.SetTop(player.HealthBar, player.Y + Player.SIZE / 2);
 
                     player.IsUpdated = true;
                 }

@@ -8,6 +8,8 @@ namespace NodeOnline.Logic
     class Player
     {
         public static int SIZE = 20;
+        public static int HEALTH_BAR_WIDTH = 50;
+        public static int HEALTH_BAR_HEIGHT = 10;
 
         public int ID
         {
@@ -79,6 +81,7 @@ namespace NodeOnline.Logic
                 {
                     IsUpdated = false;
                     _health = value;
+                    HealthBar.Width = _health * 0.01 * HEALTH_BAR_WIDTH;
                 }
             }
         }
@@ -99,13 +102,19 @@ namespace NodeOnline.Logic
             }
         }
 
-        public TextBlock _nameText;
+        private TextBlock _nameText;
         public TextBlock NameText
         {
             get
             {
                 return _nameText;
             }
+        }
+
+        private Rectangle _healthBar;
+        public Rectangle HealthBar
+        {
+            get { return _healthBar; }
         }
 
         public void SetColor(byte r, byte g, byte b)
@@ -137,6 +146,13 @@ namespace NodeOnline.Logic
             _nameText = new TextBlock
             {
                 Text = Name
+            };
+
+            _healthBar = new Rectangle
+            {
+                Fill = Brushes.Green,
+                Width = HEALTH_BAR_WIDTH,
+                Height = HEALTH_BAR_HEIGHT
             };
         }
     }
